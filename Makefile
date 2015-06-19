@@ -54,7 +54,7 @@ CPPUTEST_LIBS=-lCppUTest -lCppUTestExt
 #
 # All Object files, do not use wildcard, add the ones you need explicitly!
 #
-COMMON_OBJECTS = $(COMMON_BIN)/subsystems.o $(COMMON_BIN)/command-factory.o $(COMMON_BIN)/deletelog-command.o  $(COMMON_BIN)/decode-command.o $(COMMON_BIN)/getlog-command.o $(COMMON_BIN)/gettime-command.o $(COMMON_BIN)/reboot-command.o $(COMMON_BIN)/settime-command.o $(COMMON_BIN)/update-command.o 
+COMMON_OBJECTS = $(COMMON_BIN)/subsystems.o $(COMMON_BIN)/command-factory.o $(COMMON_BIN)/icommand.o $(COMMON_BIN)/deletelog-command.o  $(COMMON_BIN)/decode-command.o $(COMMON_BIN)/getlog-command.o $(COMMON_BIN)/gettime-command.o $(COMMON_BIN)/reboot-command.o $(COMMON_BIN)/settime-command.o $(COMMON_BIN)/update-command.o 
 
 OBJECTS = $(SPACE_COMMANDER_BIN)/Net2Com.o $(SPACE_COMMANDER_BIN)/NamedPipe.o $(SPACE_COMMANDER_BIN)/base64.o
 
