@@ -40,8 +40,16 @@ GetLogCommand::GetLogCommand()
     this->number_of_processed_files = 0;
 }
 
-GetLogCommand::GetLogCommand(char opt_byte, char subsystem, size_t size, time_t time)
-{
+GetLogCommand::GetLogCommand(char opt_byte, char subsystem, size_t size, time_t time) {
+    this->opt_byte = opt_byte;
+    this->subsystem = subsystem;
+    this->size = size;
+    this->date = Date(time);
+    this->number_of_processed_files = 0;
+}
+
+GetLogCommand::GetLogCommand(unsigned short cuid, char opt_byte, char subsystem, size_t size, time_t time) {
+    this->setCuid(cuid);
     this->opt_byte = opt_byte;
     this->subsystem = subsystem;
     this->size = size;
@@ -125,8 +133,11 @@ void* GetLogCommand::Execute(size_t *pSize)
     // allocate the result buffer
     result = (char*)malloc(sizeof(char) * (bytes + CMD_RES_HEAD_SIZE));
     
-    result[0] = GETLOG_CMD;
-    result[1] = get_log_status;
+    result[CMD_ID] = GETLOG_CMD;
+    result[CMD_CUID] = 'A'; // TODO DUMMY <---------------------------------------------------------------------------- HERE
+    result[CMD_CUID + 1] = 'A'; // TODO DUMMY <---------------------------------------------------------------------------- HERE
+    result[CMD_STS] = get_log_status;
+
     if (result) {
         // Saves the tgz data in th result buffer
         memcpy(result + CMD_RES_HEAD_SIZE, buffer, bytes);
@@ -389,13 +400,14 @@ bool GetLogCommand::prefixMatches(const char* filename, const char* pattern)
 * PURPOSE : Builds a GetLogCommand and saves it into 'command_buf'
 *
 *-----------------------------------------------------------------------------*/
-char* GetLogCommand::Build_GetLogCommand(char command_buf[GETLOG_CMD_SIZE], char opt_byte, char subsystem, size_t size, time_t date) 
-{
-   command_buf[0] = GETLOG_CMD;
-   command_buf[1] = opt_byte;
-   command_buf[2] = subsystem;
-   SpaceString::get4Char(command_buf + 3, size);
-   SpaceString::get4Char(command_buf + 7, date);
+char* GetLogCommand::Build_GetLogCommand(char command_buf[GETLOG_CMD_SIZE], unsigned short cuid, 
+                                            char opt_byte, char subsystem, size_t size, time_t date) {
+   command_buf[CMD_ID] = GETLOG_CMD;
+   SpaceString::get2Char(command_buf + CMD_CUID, cuid);
+   command_buf[GETLOG_CMD_OPT_BYTE_IDX] = opt_byte;
+   command_buf[GETLOG_CMD_SUB_SYSTEM_IDX] = subsystem;
+   SpaceString::get4Char(command_buf + GETLOG_CMD_SIZE_IDX, size);
+   SpaceString::get4Char(command_buf + GETLOG_CMD_DATE_IDX, date);
 
    return command_buf;
 }
@@ -478,9 +490,9 @@ ino_t GetLogCommand::GetInoT(const char *filepath)
 *           use by the GroundCommander. 
 *
 *-----------------------------------------------------------------------------*/
-char* GetLogCommand::GetCmdStr(char* cmd_buf)
-{
+char* GetLogCommand::GetCmdStr(char* cmd_buf) {
     GetLogCommand::Build_GetLogCommand(cmd_buf,
+                                       this->getCuid(),
                                        this->opt_byte,
                                        this->subsystem,
                                        this->size,

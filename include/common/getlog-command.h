@@ -7,12 +7,14 @@
 *
 * DESCRIPTION : Retreive a log archive.
 *
-*              - Format of the GetLogCommand :  
-*                   [0]   :   Command number byte.
-*                   [1]   :   Option byte - specifies if options are present or not
-*                   [2]   :   Subsystem  
-*                 [3-6]   :   Size
-*                [7-10]   :   Date as a time_t
+*              Format of the GetLogCommand :  
+*
+* CMD_HEAD  |-      [0]   :   CMD_ID
+*           |_      [1]   :   CMD_CUID
+*                   [2]   :   Option byte - specifies if options are present or not
+*                   [3]   :   Subsystem  
+*                 [4-7]   :   Size
+*                [8-11]   :   Date as a time_t (assuming 4 bytes time_t)
 *
 *       Execute() :
 *               if there is no option specified     
@@ -40,7 +42,15 @@
 
 using namespace std;
 
-#define GETLOG_CMD_SIZE 11
+#define GETLOG_SPECEFIC_CMD_SIZE 10
+#define GETLOG_CMD_SIZE (CMD_HEAD_SIZE + GETLOG_SPECEFIC_CMD_SIZE)
+
+// sent getlog
+#define GETLOG_CMD_OPT_BYTE_IDX 3
+#define GETLOG_CMD_SUB_SYSTEM_IDX 4
+#define GETLOG_CMD_SIZE_IDX 5
+#define GETLOG_CMD_DATE_IDX 9
+
 #define MAX_NUMBER_OF_FILES_PER_CMD 10
 
 #define OPT_NOOPT 0x00
@@ -86,6 +96,7 @@ class GetLogCommand : public ICommand
     public :
         GetLogCommand();
         GetLogCommand(char opt_byte, char subsystem, size_t size, time_t time);
+        GetLogCommand(unsigned short cuid, char opt_byte, char subsystem, size_t size, time_t time);
         ~GetLogCommand();
         void* Execute(size_t *pSize);
         
@@ -112,7 +123,7 @@ class GetLogCommand : public ICommand
         static ino_t GetInoT(const char *filepath);
 
     private :
-        static char* Build_GetLogCommand(char command_buf[GETLOG_CMD_SIZE], char opt_byte, 
-                                                        char subsystem, size_t size, time_t date);
+        char* Build_GetLogCommand(char command_buf[GETLOG_CMD_SIZE], unsigned short cuid, 
+                                            char opt_byte, char subsystem, size_t size, time_t date);
 };
 #endif

@@ -493,22 +493,33 @@ TEST(GetLogTestGroup, prefixMatches_returnsTrue) {
  * 
  *-----------------------------------------------------------------------------*/
 TEST(GetLogTestGroup, GetCmdStr_returnsCorrectCmd) {
+    unsigned short expected_cuid = 123;
+
     char expected[GETLOG_CMD_SIZE] = {0};
-    expected[0] = GETLOG_CMD;
-    expected[1] = OPT_SUB | OPT_SIZE | OPT_DATE;
-    expected[2] = UPDATER; 
-    SpaceString::get4Char(expected + 3, 666);
-    SpaceString::get4Char(expected + 7, 666);
+    expected[CMD_ID] = GETLOG_CMD;
+    expected[CMD_CUID] = expected_cuid;
+    expected[GETLOG_CMD_OPT_BYTE_IDX] = OPT_SUB | OPT_SIZE | OPT_DATE;
+    expected[GETLOG_CMD_SUB_SYSTEM_IDX] = UPDATER; 
+    SpaceString::get4Char(expected + GETLOG_CMD_SIZE_IDX, 666);
+    SpaceString::get4Char(expected + GETLOG_CMD_DATE_IDX, 666);
     
-    ICommand *cmd = new GetLogCommand(OPT_SUB | OPT_SIZE | OPT_DATE, UPDATER, 666, 666);
+    ICommand *cmd = new GetLogCommand(expected_cuid, OPT_SUB | OPT_SIZE | OPT_DATE, UPDATER, 666, 666);
     cmd->GetCmdStr(command_buf);
 
+
     #ifdef CS1_DEBUG
-        fprintf(stderr, "[INFO] command_buf : %x %x %x %zd %zd\n", command_buf[0], 
-                                                           command_buf[1], 
-                                                           command_buf[2],
-                                                           SpaceString::getUInt(&command_buf[3]),
-                                                           SpaceString::getUInt(&command_buf[7]));
+        fprintf(stderr, "[INFO] expected : '%1x' '%hu' '%1x' '%1x' '%zd' '%zd'\n", expected[CMD_ID], 
+                                                           expected[CMD_CUID],
+                                                           expected[GETLOG_CMD_OPT_BYTE_IDX], 
+                                                           expected[GETLOG_CMD_SUB_SYSTEM_IDX],
+                                                           SpaceString::getUInt(&expected[GETLOG_CMD_SIZE_IDX]),
+                                                           SpaceString::getUInt(&expected[GETLOG_CMD_DATE_IDX]));
+        fprintf(stderr, "[INFO] command_buf : '%1x' '%hu' '%1x' '%1x' '%zd' '%zd'\n", command_buf[CMD_ID], 
+                                                           expected[CMD_CUID],
+                                                           command_buf[GETLOG_CMD_OPT_BYTE_IDX], 
+                                                           command_buf[GETLOG_CMD_SUB_SYSTEM_IDX],
+                                                           SpaceString::getUInt(&command_buf[GETLOG_CMD_SIZE_IDX]),
+                                                           SpaceString::getUInt(&command_buf[GETLOG_CMD_DATE_IDX]));
     #endif
 
     CHECK_EQUAL(memcmp(expected, command_buf, GETLOG_CMD_SIZE), 0);
