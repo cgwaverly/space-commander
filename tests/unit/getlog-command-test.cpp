@@ -34,8 +34,7 @@ static void create_file(const char* path, const char* msg);
 #define UTEST_SIZE_OF_TEST_FILES 6
 static const char* data_6_bytes = "123456";
 
-TEST_GROUP(GetLogTestGroup)
-{
+TEST_GROUP(GetLogTestGroup) {
     void setup(){
         mkdir(CS1_TGZ, S_IRWXU);
         memset(command_buf, 0, GETLOG_CMD_SIZE);
@@ -47,21 +46,20 @@ TEST_GROUP(GetLogTestGroup)
     }
 };
 
-void create_file(const char* path, const char* msg)
-{
+void create_file(const char* path, const char* msg) {
     FILE* file = fopen(path, "w+");
     fprintf(file, "%s", msg);
     fclose(file);
 }
+
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-*
-* GROUP : GetLogTestGroup
-*
-* NAME : Execute_OPT_NOOPT_NOFILES
-* 
-*-----------------------------------------------------------------------------*/
-TEST(GetLogTestGroup, Execute_OPT_NOOPT_NOFILES)
-{
+ *
+ * GROUP : GetLogTestGroup
+ *
+ * NAME : Execute_OPT_NOOPT_NOFILES
+ * 
+ *-----------------------------------------------------------------------------*/
+TEST(GetLogTestGroup, Execute_OPT_NOOPT_NOFILES) {
     // This is the Command to create on the ground.
     size_t result_size;
     GetLogCommand ground_cmd(OPT_NOOPT, 0, 0, 0);
@@ -86,15 +84,15 @@ TEST(GetLogTestGroup, Execute_OPT_NOOPT_NOFILES)
         result = 0;
     }
 }
+
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-*
-* GROUP : GetLogTestGroup
-*
-* NAME : GetInfoBytes_returnsCorrectInfoBytes
-* 
-*-----------------------------------------------------------------------------*/
-TEST(GetLogTestGroup, GetInfoBytes_returnsCorrectInfoBytes)
-{
+ *
+ * GROUP : GetLogTestGroup
+ *
+ * NAME : GetInfoBytes_returnsCorrectInfoBytes
+ * 
+ *-----------------------------------------------------------------------------*/
+TEST(GetLogTestGroup, GetInfoBytes_returnsCorrectInfoBytes) {
     const char *filepath = CS1_TGZ"/Watch-Puppy20140101.tgz";
     char buffer[GETLOG_INFO_SIZE] = {0};
 
@@ -110,14 +108,13 @@ TEST(GetLogTestGroup, GetInfoBytes_returnsCorrectInfoBytes)
 }
 
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-*
-* GROUP : GetLogTestGroup
-*
-* NAME : Execute_OPT_DATE_OPT_SUB_getTgz_returnsCorrectFile
-* 
-*-----------------------------------------------------------------------------*/
-TEST(GetLogTestGroup, Execute_OPT_DATE_OPT_SUB_getTgz_returnsCorrectFile)
-{
+ *
+ * GROUP : GetLogTestGroup
+ *
+ * NAME : Execute_OPT_DATE_OPT_SUB_getTgz_returnsCorrectFile
+ * 
+ *-----------------------------------------------------------------------------*/
+TEST(GetLogTestGroup, Execute_OPT_DATE_OPT_SUB_getTgz_returnsCorrectFile) {
     const char* path = CS1_TGZ"/Updater20140102.txt";  
     size_t result_size;
 
@@ -173,14 +170,13 @@ TEST(GetLogTestGroup, Execute_OPT_DATE_OPT_SUB_getTgz_returnsCorrectFile)
 }
 
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-*
-* GROUP : GetLogTestGroup
-*
-* NAME : Execute_OPT_NOOPT_get2TGZ_returns2OldestTgz 
-* 
-*-----------------------------------------------------------------------------*/
-TEST(GetLogTestGroup, Execute_OPT_NOOPT_get2TGZ_returns2OldestTgz)
-{
+ *
+ * GROUP : GetLogTestGroup
+ *
+ * NAME : Execute_OPT_NOOPT_get2TGZ_returns2OldestTgz 
+ * 
+ *-----------------------------------------------------------------------------*/
+TEST(GetLogTestGroup, Execute_OPT_NOOPT_get2TGZ_returns2OldestTgz) {
     const char* path = CS1_TGZ"/Watch-Puppy20140101.txt";  
     const char* path2 = CS1_TGZ"/Updater20140102.txt";  
     size_t result_size;
@@ -236,14 +232,13 @@ TEST(GetLogTestGroup, Execute_OPT_NOOPT_get2TGZ_returns2OldestTgz)
 }
 
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-*
-* GROUP : GetLogTestGroup
-*
-* NAME : Execute_OPT_NOOPT_returnsOldestTgz 
-* 
-*-----------------------------------------------------------------------------*/
-TEST(GetLogTestGroup, Execute_OPT_NOOPT_returnsOldestTgz)
-{
+ *
+ * GROUP : GetLogTestGroup
+ *
+ * NAME : Execute_OPT_NOOPT_returnsOldestTgz 
+ * 
+ *-----------------------------------------------------------------------------*/
+TEST(GetLogTestGroup, Execute_OPT_NOOPT_returnsOldestTgz) {
     const char* path = CS1_TGZ"/Watch-Puppy20140101.txt";  
     size_t result_size;
 
@@ -286,14 +281,13 @@ TEST(GetLogTestGroup, Execute_OPT_NOOPT_returnsOldestTgz)
 }
 
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-*
-* GROUP : GetLogTestGroup
-*
-* NAME : ReadFile_FromStartToEnd_success 
-* 
-*-----------------------------------------------------------------------------*/
-TEST(GetLogTestGroup, ReadFile_FromStartToEnd_success)
-{
+ *
+ * GROUP : GetLogTestGroup
+ *
+ * NAME : ReadFile_FromStartToEnd_success 
+ * 
+ *-----------------------------------------------------------------------------*/
+TEST(GetLogTestGroup, ReadFile_FromStartToEnd_success) {
     char buffer[CS1_MAX_FRAME_SIZE + 50] = {0};
     const char* path = CS1_TGZ"/Updater20140101.txt";
     const char* dest = CS1_TGZ"/Updater20140101.txt-copy";
@@ -312,14 +306,13 @@ TEST(GetLogTestGroup, ReadFile_FromStartToEnd_success)
 }
 
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-*
-* GROUP : GetLogTestGroup
-*
-* NAME : GetNextFile_SUB_returnsOldestFilenameThatBelongsToSub 
-* 
-*-----------------------------------------------------------------------------*/
-TEST(GetLogTestGroup, GetNextFile_SUB_returnsOldestFilenameThatBelongsToSub) 
-{
+ *
+ * GROUP : GetLogTestGroup
+ *
+ * NAME : GetNextFile_SUB_returnsOldestFilenameThatBelongsToSub 
+ * 
+ *-----------------------------------------------------------------------------*/
+TEST(GetLogTestGroup, GetNextFile_SUB_returnsOldestFilenameThatBelongsToSub) {
     create_file(CS1_TGZ"/Watch-Puppy20140101.txt", "file a");
     usleep(1000000);
     create_file(CS1_TGZ"/Updater20140102.txt", "file b");
@@ -343,14 +336,13 @@ TEST(GetLogTestGroup, GetNextFile_SUB_returnsOldestFilenameThatBelongsToSub)
 }
 
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-*
-* GROUP : GetLogTestGroup
-*
-* NAME : GetNextFile_NOOPT_returnsOldestFilename 
-* 
-*-----------------------------------------------------------------------------*/
-TEST(GetLogTestGroup, GetNextFile_NOOPT_returnsOldestFilename) 
-{
+ *
+ * GROUP : GetLogTestGroup
+ *
+ * NAME : GetNextFile_NOOPT_returnsOldestFilename 
+ * 
+ *-----------------------------------------------------------------------------*/
+TEST(GetLogTestGroup, GetNextFile_NOOPT_returnsOldestFilename) {
     create_file(CS1_TGZ"/a.txt", "file a");
     usleep(1000000);
     create_file(CS1_TGZ"/b.txt", "file b");
@@ -372,14 +364,13 @@ TEST(GetLogTestGroup, GetNextFile_NOOPT_returnsOldestFilename)
 }
 
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-*
-* GROUP : GetLogTestGroup
-*
-* NAME : FindOldestFile_OPT_SUB_returnsCorrectFilename 
-* 
-*-----------------------------------------------------------------------------*/
-TEST(GetLogTestGroup, FindOldestFile_OPT_SUB_returnsCorrectFilename) 
-{
+ *
+ * GROUP : GetLogTestGroup
+ *
+ * NAME : FindOldestFile_OPT_SUB_returnsCorrectFilename 
+ * 
+ *-----------------------------------------------------------------------------*/
+TEST(GetLogTestGroup, FindOldestFile_OPT_SUB_returnsCorrectFilename) {
     GetLogCommand command;
 
     create_file(CS1_TGZ"/SubA20140101.txt", "file a");
@@ -407,8 +398,7 @@ TEST(GetLogTestGroup, FindOldestFile_OPT_SUB_returnsCorrectFilename)
 * NAME : FindOldestFile_returnsTheCorrectFilename 
 *
 *-----------------------------------------------------------------------------*/
-TEST(GetLogTestGroup, FindOldestFile_returnsTheCorrectFilename)
-{
+TEST(GetLogTestGroup, FindOldestFile_returnsTheCorrectFilename) {
     GetLogCommand command;
 
     create_file(CS1_TGZ"/a.txt", "file a");
@@ -454,20 +444,19 @@ TEST(GetLogTestGroup, GetFileLastModifTimeT_returnsCorrectTimeT)
         CHECK_EQUAL(current_tm->tm_min, timeinfo->tm_min);
 
         remove(path);
-    }else{
+    } else {
         FAIL("Couldn't open the file");
     }
 }
 
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-*
-* GROUP : GetLogTestGroup
-*
-* NAME : BuildPath_returnsCorrectPath
-* 
-*-----------------------------------------------------------------------------*/
-TEST(GetLogTestGroup, BuildPath_returnsCorrectPath) 
-{
+ *
+ * GROUP : GetLogTestGroup
+ *
+ * NAME : BuildPath_returnsCorrectPath
+ * 
+ *-----------------------------------------------------------------------------*/
+TEST(GetLogTestGroup, BuildPath_returnsCorrectPath) {
     const char* dir = "/my/directory";
     const char* file = "the_file.file";
     const char* expected = "/my/directory/the_file.file";
@@ -478,14 +467,13 @@ TEST(GetLogTestGroup, BuildPath_returnsCorrectPath)
 }
 
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-*
-* GROUP : GetLogTestGroup
-*
-* NAME : prefixMatches_returnsTrue
-* 
-*-----------------------------------------------------------------------------*/
-TEST(GetLogTestGroup, prefixMatches_returnsTrue) 
-{
+ *
+ * GROUP : GetLogTestGroup
+ *
+ * NAME : prefixMatches_returnsTrue
+ * 
+ *-----------------------------------------------------------------------------*/
+TEST(GetLogTestGroup, prefixMatches_returnsTrue) {
     const char* haystack = "StarMoonStorm";
     const char* needle1 = "";
     const char* needle2 = "Star";
@@ -498,14 +486,13 @@ TEST(GetLogTestGroup, prefixMatches_returnsTrue)
 
 
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-*
-* GROUP : GetLogTestGroup
-*
-* NAME : GetCmdStr_returnsCorrectCmd 
-* 
-*-----------------------------------------------------------------------------*/
-TEST(GetLogTestGroup, GetCmdStr_returnsCorrectCmd)
-{
+ *
+ * GROUP : GetLogTestGroup
+ *
+ * NAME : GetCmdStr_returnsCorrectCmd 
+ * 
+ *-----------------------------------------------------------------------------*/
+TEST(GetLogTestGroup, GetCmdStr_returnsCorrectCmd) {
     char expected[GETLOG_CMD_SIZE] = {0};
     expected[0] = GETLOG_CMD;
     expected[1] = OPT_SUB | OPT_SIZE | OPT_DATE;
@@ -533,14 +520,13 @@ TEST(GetLogTestGroup, GetCmdStr_returnsCorrectCmd)
 }
 
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-*
-* GROUP : GetLogTestGroup
-*
-* NAME : HasNextFile_returnsPointerToNextData 
-* 
-*-----------------------------------------------------------------------------*/
-TEST(GetLogTestGroup, HasNextFile_returnsPointerToNextData)
-{
+ *
+ * GROUP : GetLogTestGroup
+ *
+ * NAME : HasNextFile_returnsPointerToNextData 
+ * 
+ *-----------------------------------------------------------------------------*/
+TEST(GetLogTestGroup, HasNextFile_returnsPointerToNextData) {
     const char result[] = { EOF, EOF, 'I',
                             EOF, EOF, 'B' };
 
