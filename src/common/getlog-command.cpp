@@ -33,14 +33,16 @@ extern const char* s_cs1_subsystems[];  // defined in subsystems.cpp
 *-----------------------------------------------------------------------------*/
 GetLogCommand::GetLogCommand()
 {
+    this->setCuid(0);
     this->opt_byte = 0x0;
+    this->subsystem = 0x0;
     this->size = CS1_MAX_FRAME_SIZE;        // Max number of bytes to retreive.  size / tgz-part-size = number of frames
     this->date = Date();                    // Default to oldest possible log file.
-    this->subsystem = 0x0;
     this->number_of_processed_files = 0;
 }
 
 GetLogCommand::GetLogCommand(char opt_byte, char subsystem, size_t size, time_t time) {
+    this->setCuid(0);
     this->opt_byte = opt_byte;
     this->subsystem = subsystem;
     this->size = size;
@@ -97,6 +99,7 @@ void* GetLogCommand::Execute(size_t *pSize)
     while (number_of_files_to_retreive) { 
         file_to_retreive = this->GetNextFile();
 #ifdef CS1_DEBUG
+        fprintf(stderr, "[DEBUG] %s() - number_of_files_to_retreive: %d\n", __func__, number_of_files_to_retreive);
         fprintf(stderr, "[DEBUG] %s() - file_to_retreive : %s\n", __func__, file_to_retreive);
 #endif
         if ( file_to_retreive[0] != '\0' )
@@ -134,12 +137,11 @@ void* GetLogCommand::Execute(size_t *pSize)
     result = (char*)malloc(sizeof(char) * (bytes + CMD_RES_HEAD_SIZE));
     
     result[CMD_ID] = GETLOG_CMD;
-    result[CMD_CUID] = 'A'; // TODO DUMMY <---------------------------------------------------------------------------- HERE
-    result[CMD_CUID + 1] = 'A'; // TODO DUMMY <---------------------------------------------------------------------------- HERE
+    SpaceString::get2Char(result + CMD_CUID, this->getCuid());
     result[CMD_STS] = get_log_status;
 
     if (result) {
-        // Saves the tgz data in th result buffer
+        // Saves the tgz data in the result buffer
         memcpy(result + CMD_RES_HEAD_SIZE, buffer, bytes);
     }
 
@@ -588,6 +590,8 @@ InfoBytes* GetLogCommand::ParseResult(char* result)
 * 
 * PURPOSE : Check if END bytes (2x) are there (i.e. EOF EOF EOF EOF) 
 *           This means that there is no more files in the result buffer.
+*
+* RETURN : null if 4x EOF is found.
 *   
 *-----------------------------------------------------------------------------*/
 const char* GetLogCommand::HasNextFile(const char* result)

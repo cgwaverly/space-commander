@@ -66,12 +66,13 @@ ICommand* CommandFactory::CreateDeleteLog(char* data) {
 }
 
 ICommand* CommandFactory::CreateGetLog(char* data) {    // 0x33 or '3'
-    char opt_byte = data[1];
-    char subsystem = data[2];
-    size_t size = SpaceString::getUInt(data + 3);
-    time_t raw_time = SpaceString::getUInt(data + 7);
+    unsigned short cuid = SpaceString::getUShort(data + CMD_CUID);
+    char opt_byte = data[GETLOG_CMD_OPT_BYTE_IDX];
+    char subsystem = data[GETLOG_CMD_SUB_SYSTEM_IDX];
+    size_t size = SpaceString::getUInt(data + GETLOG_CMD_SIZE_IDX);
+    time_t raw_time = SpaceString::getUInt(data + GETLOG_CMD_DATE_IDX);
 
-    GetLogCommand* result = new GetLogCommand(opt_byte, subsystem, size, raw_time);
+    GetLogCommand* result = new GetLogCommand(cuid, opt_byte, subsystem, size, raw_time);
 
     return result;
 }

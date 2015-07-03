@@ -70,7 +70,7 @@ using namespace std;
                              */
 class GetLogInfoBytes : public InfoBytes
 {
-    public:
+public:
     char getlog_status;
     ino_t inode;
     const char *getlog_message;
@@ -80,6 +80,13 @@ class GetLogInfoBytes : public InfoBytes
     string* ToString() {
         return new string (1, getlog_status);
     }
+
+    unsigned short getCuid() {
+        return cuid;
+    }
+
+private:
+    unsigned short cuid;
 };
 
 class GetLogCommand : public ICommand 
