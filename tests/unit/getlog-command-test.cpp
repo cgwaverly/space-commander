@@ -30,6 +30,8 @@
 static char command_buf[GETLOG_CMD_SIZE] = {'\0'};
 
 static void create_file(const char* path, const char* msg);
+static void print_cmd_bufs(char* expected, char* actual);
+static char* get_expected_cmd_buf(char* result, unsigned short cuid, char opt_byte, char subsystem, size_t size, time_t time);
 
 #define UTEST_SIZE_OF_TEST_FILES 6
 static const char* data_6_bytes = "123456";
@@ -38,8 +40,8 @@ TEST_GROUP(GetLogTestGroup) {
     void setup(){
         mkdir(CS1_TGZ, S_IRWXU);
         memset(command_buf, 0, GETLOG_CMD_SIZE);
-
     }
+
     void teardown(){
         DeleteDirectoryContent(CS1_TGZ);
         rmdir(CS1_TGZ);
@@ -180,6 +182,7 @@ TEST(GetLogTestGroup, Execute_OPT_NOOPT_get2TGZ_returns2OldestTgz) {
     const char* path = CS1_TGZ"/Watch-Puppy20140101.txt";  
     const char* path2 = CS1_TGZ"/Updater20140102.txt";  
     size_t result_size;
+    size_t expected_size = 6;
     
     create_file(CS1_TGZ"/Watch-Puppy20140101.txt", "file a");
     usleep(1000000);
@@ -192,24 +195,45 @@ TEST(GetLogTestGroup, Execute_OPT_NOOPT_get2TGZ_returns2OldestTgz) {
     const char* dest = CS1_TGZ"/Watch-Puppy20140101.txt-copy";
     const char* dest2 = CS1_TGZ"/Updater20140102.txt-copy";
 
+    // the expected command buffer to be sent
+    unsigned short expected_cuid = 256;
+    char expected_cmd_buf[GETLOG_CMD_SIZE] = {0};
+    expected_cmd_buf[CMD_ID] = GETLOG_CMD;
+    SpaceString::get2Char(expected_cmd_buf + CMD_CUID, expected_cuid);
+    expected_cmd_buf[GETLOG_CMD_OPT_BYTE_IDX] = OPT_SIZE; 
+    expected_cmd_buf[GETLOG_CMD_SUB_SYSTEM_IDX] = 0; 
+    SpaceString::get4Char(expected_cmd_buf + GETLOG_CMD_SIZE_IDX, (size_t)CS1_MAX_FRAME_SIZE * 2);
+    SpaceString::get4Char(expected_cmd_buf + GETLOG_CMD_DATE_IDX, 0);
+
+
     // This is the Command to create on the ground.
-    GetLogCommand ground_cmd(OPT_SIZE, 0, (size_t)CS1_MAX_FRAME_SIZE * 2, 0);
+    GetLogCommand ground_cmd(expected_cuid, OPT_SIZE, 0, (size_t)CS1_MAX_FRAME_SIZE * 2, 0);
     ground_cmd.GetCmdStr(command_buf);
+
+    #ifdef CS1_DEBUG
+    print_cmd_bufs(expected_cmd_buf, command_buf);
+    #endif
+    CHECK_EQUAL(memcmp(expected_cmd_buf, command_buf, GETLOG_CMD_SIZE), 0);
 
     ICommand *command = CommandFactory::CreateCommand(command_buf);
     result = (char*)command->Execute(&result_size);
 
+    CHECK_EQUAL(SpaceString::getUShort(command_buf + CMD_CUID), SpaceString::getUShort(result + CMD_CUID));
+    CHECK(CS1_SUCCESS == result[CMD_STS]);
+
     FILE *pFile = fopen(dest, "wb");
 
     if (pFile) {
-        fwrite(result + CMD_RES_HEAD_SIZE + GETLOG_INFO_SIZE, 1, 6, pFile);        // TODO fix this to read until EOF, or add the size to the result buffer
+        fwrite(result + CMD_RES_HEAD_SIZE + GETLOG_INFO_SIZE, 
+                                            1, expected_size, pFile);        // TODO fix this to read until EOF, or add the size to the result buffer
         fclose(pFile);
     }
 
     pFile = fopen(dest2, "wb");
 
     if (pFile) {
-        fwrite(result + CMD_RES_HEAD_SIZE + 6 + 2 * GETLOG_INFO_SIZE + GETLOG_ENDBYTES_SIZE, 1, 6, pFile); // TODO fix this to read until EOF, or add the size to the result buffer
+        fwrite(result + CMD_RES_HEAD_SIZE + expected_size + 2 * GETLOG_INFO_SIZE + GETLOG_ENDBYTES_SIZE, 
+                            1, expected_size, pFile); // TODO fix this to read until EOF, or add the size to the result buffer
         fclose(pFile);
     }
 
@@ -231,6 +255,7 @@ TEST(GetLogTestGroup, Execute_OPT_NOOPT_get2TGZ_returns2OldestTgz) {
 
 }
 
+
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
  * GROUP : GetLogTestGroup
@@ -238,9 +263,10 @@ TEST(GetLogTestGroup, Execute_OPT_NOOPT_get2TGZ_returns2OldestTgz) {
  * NAME : Execute_OPT_NOOPT_returnsOldestTgz 
  * 
  *-----------------------------------------------------------------------------*/
-TEST(GetLogTestGroup, Execute_OPT_NOOPT_returnsOldestTgz) {
+TEST(GetLogTestGroup, Execute_OPT_NOOPT_returnsOldestTgz) {                     // HERE TODO HERE TODO
     const char* path = CS1_TGZ"/Watch-Puppy20140101.txt";  
     size_t result_size;
+    size_t expected_size = 6;
 
     create_file(CS1_TGZ"/Watch-Puppy20140101.txt", "file a");
     usleep(1000000);
@@ -252,9 +278,19 @@ TEST(GetLogTestGroup, Execute_OPT_NOOPT_returnsOldestTgz) {
     char* result = 0;
     const char* dest = CS1_TGZ"/Watch-Puppy20140101.txt-copy";
 
+    // the expected command buffer to be sent
+    unsigned short expected_cuid = 256;
+    char expected_cmd_buf[GETLOG_CMD_SIZE] = {0};
+    get_expected_cmd_buf(expected_cmd_buf, expected_cuid, OPT_NOOPT, 0, 0, 0);
+
     // This is the Command to create on the ground.
-    GetLogCommand ground_cmd(OPT_NOOPT, 0, 0, 0);
+    GetLogCommand ground_cmd(expected_cuid, OPT_NOOPT, 0, 0, 0);
     ground_cmd.GetCmdStr(command_buf);
+
+    #ifdef CS1_DEBUG
+    print_cmd_bufs(expected_cmd_buf, command_buf);
+    #endif
+    CHECK_EQUAL(memcmp(expected_cmd_buf, command_buf, GETLOG_CMD_SIZE), 0);
 
     ICommand *command = CommandFactory::CreateCommand(command_buf);
     result = (char*)command->Execute(&result_size);
@@ -262,13 +298,12 @@ TEST(GetLogTestGroup, Execute_OPT_NOOPT_returnsOldestTgz) {
     FILE *pFile = fopen(dest, "wb");
 
     if (pFile) {
-        fwrite(result + CMD_RES_HEAD_SIZE + GETLOG_INFO_SIZE, 1, 6, pFile);        // TODO fix this to read until EOF, or add the size to the result buffer
+        fwrite(result + CMD_RES_HEAD_SIZE + GETLOG_INFO_SIZE, 1, expected_size, pFile);        // TODO fix this to read until EOF, or add the size to the result buffer
         fclose(pFile);
     }
 
     CHECK(diff(dest, path));     
 
-    // Cleanup
     if (command){
         delete command;
         command = NULL;
@@ -493,36 +528,20 @@ TEST(GetLogTestGroup, prefixMatches_returnsTrue) {
  * 
  *-----------------------------------------------------------------------------*/
 TEST(GetLogTestGroup, GetCmdStr_returnsCorrectCmd) {
+    char expected_cmd_buf[GETLOG_CMD_SIZE] = {0};
     unsigned short expected_cuid = 123;
-
-    char expected[GETLOG_CMD_SIZE] = {0};
-    expected[CMD_ID] = GETLOG_CMD;
-    expected[CMD_CUID] = expected_cuid;
-    expected[GETLOG_CMD_OPT_BYTE_IDX] = OPT_SUB | OPT_SIZE | OPT_DATE;
-    expected[GETLOG_CMD_SUB_SYSTEM_IDX] = UPDATER; 
-    SpaceString::get4Char(expected + GETLOG_CMD_SIZE_IDX, 666);
-    SpaceString::get4Char(expected + GETLOG_CMD_DATE_IDX, 666);
+    char opt_byte = OPT_SUB | OPT_SIZE | OPT_DATE;
+    get_expected_cmd_buf(expected_cmd_buf, expected_cuid, opt_byte, UPDATER, 666, 666);
     
     ICommand *cmd = new GetLogCommand(expected_cuid, OPT_SUB | OPT_SIZE | OPT_DATE, UPDATER, 666, 666);
     cmd->GetCmdStr(command_buf);
 
 
     #ifdef CS1_DEBUG
-        fprintf(stderr, "[INFO] expected : '%1x' '%hu' '%1x' '%1x' '%zd' '%zd'\n", expected[CMD_ID], 
-                                                           expected[CMD_CUID],
-                                                           expected[GETLOG_CMD_OPT_BYTE_IDX], 
-                                                           expected[GETLOG_CMD_SUB_SYSTEM_IDX],
-                                                           SpaceString::getUInt(&expected[GETLOG_CMD_SIZE_IDX]),
-                                                           SpaceString::getUInt(&expected[GETLOG_CMD_DATE_IDX]));
-        fprintf(stderr, "[INFO] command_buf : '%1x' '%hu' '%1x' '%1x' '%zd' '%zd'\n", command_buf[CMD_ID], 
-                                                           expected[CMD_CUID],
-                                                           command_buf[GETLOG_CMD_OPT_BYTE_IDX], 
-                                                           command_buf[GETLOG_CMD_SUB_SYSTEM_IDX],
-                                                           SpaceString::getUInt(&command_buf[GETLOG_CMD_SIZE_IDX]),
-                                                           SpaceString::getUInt(&command_buf[GETLOG_CMD_DATE_IDX]));
+    print_cmd_bufs(expected_cmd_buf, command_buf);
     #endif
 
-    CHECK_EQUAL(memcmp(expected, command_buf, GETLOG_CMD_SIZE), 0);
+    CHECK_EQUAL(memcmp(expected_cmd_buf, command_buf, GETLOG_CMD_SIZE), 0);
 
     if (cmd) {
         delete cmd;
@@ -555,4 +574,39 @@ TEST(GetLogTestGroup, HasNextFile_returnsPointerToNextData) {
     } else {
         FAIL("null pointer");
     }
+}
+
+TEST(GetLogTestGroup, HasNextFile_noNextFile_returnsNull) {
+    const char result[] = { EOF, EOF, EOF, EOF };
+    const char* next_data = GetLogCommand::HasNextFile(result);
+    CHECK_EQUAL(0, next_data);
+}
+
+static void print_cmd_bufs(char* expected, char* actual) {
+    fprintf(stderr, "[INFO] expected : '%1x' '%hu' '%1x' '%1x' '%zd' '%zd'\n", expected[CMD_ID], 
+                                                           SpaceString::getUShort(expected + CMD_CUID),
+                                                           expected[GETLOG_CMD_OPT_BYTE_IDX], 
+                                                           expected[GETLOG_CMD_SUB_SYSTEM_IDX],
+                                                           SpaceString::getUInt(&expected[GETLOG_CMD_SIZE_IDX]),
+                                                           SpaceString::getUInt(&expected[GETLOG_CMD_DATE_IDX]));
+    fprintf(stderr, "[INFO] actual : '%1x' '%hu' '%1x' '%1x' '%zd' '%zd'\n", actual[CMD_ID], 
+                                                           SpaceString::getUShort(actual + CMD_CUID),
+                                                           actual[GETLOG_CMD_OPT_BYTE_IDX], 
+                                                           actual[GETLOG_CMD_SUB_SYSTEM_IDX],
+                                                           SpaceString::getUInt(&actual[GETLOG_CMD_SIZE_IDX]),
+                                                           SpaceString::getUInt(&actual[GETLOG_CMD_DATE_IDX]));
+}
+
+static char* get_expected_cmd_buf(char* result, unsigned short cuid, char opt_byte, char subsystem, size_t size, time_t time) {
+    memset(result, 0, GETLOG_CMD_SIZE);
+
+    result[CMD_ID] = GETLOG_CMD;
+
+    SpaceString::get2Char(result + CMD_CUID, cuid);
+    result[GETLOG_CMD_OPT_BYTE_IDX] = opt_byte;
+    result[GETLOG_CMD_SUB_SYSTEM_IDX] = subsystem; 
+    SpaceString::get4Char(result + GETLOG_CMD_SIZE_IDX, size);
+    SpaceString::get4Char(result + GETLOG_CMD_DATE_IDX, time);
+
+    return result; 
 }

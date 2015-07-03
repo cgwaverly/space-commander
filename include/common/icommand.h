@@ -14,7 +14,7 @@
  * CMD_RES_HEAD  |   [0] - CMD_ID
  *               |   [1] - CMD_CUID
  *               |   [2] - CMD_CUID
- *               |   [3] - CMD_STS (for result buffer only only)
+ *               |   [3] - CMD_STS (for result buffer only)
  *
  *----------------------------------------------------------------------------*/
 #ifndef ICOMMAND_H
@@ -49,8 +49,6 @@ protected:
 public:
     ICommand();
 
-    ICommand(unsigned short cuid);
-
     virtual ~ICommand() {
         if (this->log_buffer) {
             delete[] this->log_buffer;
@@ -68,11 +66,8 @@ public:
     virtual char* GetCmdStr(char *cmd_buf) { return 0;}; // will be set to pure virtual when implemented in all cmds TODO
     virtual InfoBytes* ParseResult(char *result) = 0; // Idem
 
-
-
     unsigned short getCuid();
     void setCuid(unsigned short cuid);
-
 };
 
 #endif
