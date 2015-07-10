@@ -237,7 +237,7 @@ int perform(int bytes)
                             break;
                         }
 
-                        string* obtainedSpaceData = ParseResultData(buffer);
+                        string* obtainedSpaceData = (ParseResultData(buffer))->ToString();
                         // TODO this is returning not null 
                         if (obtainedSpaceData != NULL) { // success
                             if (buffer[(uint8_t)MAGIC_BYTE] == GETLOG_CMD) {
@@ -249,12 +249,7 @@ int perform(int bytes)
                             delete obtainedSpaceData;
                             obtainedSpaceData = NULL;
 
-                            /* TODO don't know about this code
-                            if (delete_command() != 0) { 
-                                return CS1_FAILURE;
-                            }
-                            */ 
-                            // TODO - are we deleting a command from the input file because we received its result?
+                             // TODO - are we deleting a command from the input file because we received its result?
                             // this is assuming the result buffer corresponds to the last executed command. Not necessarily true.
                         }
 
