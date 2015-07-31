@@ -24,22 +24,22 @@ int main()
     create_pipes();
 #ifdef GROUND_MOCK_SAT
     fprintf(stderr,"Mock configuration\n");
+	mkdir(GND_PIPES, S_IRWXU);
 #endif
 
     fprintf(stderr,"Follow log files in /home/logs for output\n");
 
     // TODO for mock satellite simulation, the ground and satellite commanders need to be
-    // reading from a different set of named pipes
-    
+    // reading from a different set of named pipes    
     // TODO this is causing segfault
-    // commander = new Net2Com(GDcom_w_net_r, GDnet_w_com_r, GIcom_w_net_r, GInet_w_com_r);
+     commander = new Net2Com(GDcom_w_net_r, GDnet_w_com_r, GIcom_w_net_r, GInet_w_com_r);
 
     Shakespeare::log(Shakespeare::NOTICE, GC_LOGNAME, "Waiting for commands to send or satellite data");
-
+     	
     while (true)
     {
         int result_bytes = read_results();
-
+	
         if (result_bytes > 0) {
             //get result buffers
             memset(gc_log_buffer,0,CS1_MAX_LOG_ENTRY);
@@ -57,6 +57,7 @@ int main()
         delete commander;
         commander = 0;
     }
+
     return CS1_SUCCESS;
 }
 
@@ -65,15 +66,7 @@ int main()
  **/
 int create_pipes() 
 {
-    if(!nm_output.Exist()) {
-        Shakespeare::log(Shakespeare::NOTICE,GC_LOGNAME,"Creating "NETMAN_OUTPUT_PIPE);
-        nm_output.CreatePipe(); 
-    };
-    if(!nm_input.Exist()) {
-        Shakespeare::log(Shakespeare::NOTICE,GC_LOGNAME,"Creating "NETMAN_INPUT_PIPE);
-        nm_input.CreatePipe();
-    };
-    if(!cmd_input.Exist()) {
+  if(!cmd_input.Exist()) {
         Shakespeare::log(Shakespeare::NOTICE,GC_LOGNAME,"Creating "COMMAND_INPUT_PIPE);
         cmd_input.CreatePipe();
     };
@@ -87,8 +80,8 @@ int read_results()
 {
 	memset(info_buffer, 0, sizeof(char) * 255);
 	
-	//int bytes = commander->ReadFromInfoPipe(info_buffer, 255);
-	return nm_output.ReadFromPipe(info_buffer, MAX_COMMAND_SIZE);
+	int bytes = commander->ReadFromInfoPipe(info_buffer, 255);
+	return bytes;
 }
 
 /**
@@ -108,9 +101,8 @@ int read_command()
     {
         snprintf(gc_log_buffer,CS1_MAX_LOG_ENTRY,"Read from command input file: %s", stored_command.c_str());
         Shakespeare::log(Shakespeare::NOTICE,GC_LOGNAME,gc_log_buffer);
-        int data_bytes_written = nm_input.WriteToPipe( stored_command.c_str(), CS1_MAX_FRAME_SIZE );
         // TODO: write to normal pipes
-        //int data_bytes_written = commander->WriteToDataPipe( stored_command.c_str() );
+        int data_bytes_written = commander->WriteToDataPipe( stored_command.c_str() );
         // TODO implement passing size // int data_bytes_written = commander->WriteToDataPipe(result, size);
 
         if (data_bytes_written > 0) 

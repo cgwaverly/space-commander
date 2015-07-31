@@ -62,7 +62,7 @@ bool NamedPipe::CreatePipe()
             result = true;
         } else {
             memset(np_log_buffer, 0, CS1_MAX_LOG_ENTRY);
-            snprintf(np_log_buffer,CS1_MAX_LOG_ENTRY, "Can't create the pipe : %s\n", strerror(errno));
+            snprintf(np_log_buffer,CS1_MAX_LOG_ENTRY, "Can't create the pipe at %s because of error: %s\n",fifo_path, strerror(errno));
             Shakespeare::log(Shakespeare::ERROR, NP_LOGNAME, np_log_buffer);
             switch(errno) {
                 case EEXIST : fprintf(stderr, "Continue...\n");                             // If pipe already exists, OK.
@@ -168,17 +168,17 @@ int NamedPipe::ReadFromPipe(char* buffer, int size)
     int bytes_read = 0;
 
     if(!Open('r')) {
-       return 0;
+      	return 0;
     }
 
     struct pollfd fds;
     fds.fd = fifo;
     fds.events = POLLIN;
-
+	
     // poll 5 ms to see if there's new data to be read
     if(poll(&fds, 1, 5)) {
        bytes_read = read(fifo, buffer, size);
-
+	
        if(bytes_read == -1) {
           if(errno != EAGAIN) {
              memset(np_log_buffer, 0, CS1_MAX_LOG_ENTRY);

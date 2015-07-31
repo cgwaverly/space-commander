@@ -17,7 +17,8 @@
 #include <unistd.h>
 #include <inttypes.h>
 #include <fstream>
-
+#include <sys/types.h>
+#include <sys/stat.h>
 #include "space-commander/Net2Com.h"
 #include "common/command-factory.h"
 #include "shakespeare.h"
@@ -54,13 +55,9 @@ char gc_log_buffer[CS1_MAX_LOG_ENTRY] = {0};
 // TODO What is this file for?
 const char CMD_TEMP_FILE[] = "/home/groundCommanderTemp"; //###MAKE SURE TO HAVE WRITE PERMISSIONS###
 
-#define NETMAN_INPUT_PIPE "/home/pipes/gnd-input"
-#define NETMAN_OUTPUT_PIPE "/home/pipes/gnd-output"
 #define COMMAND_INPUT_PIPE "/home/pipes/cmd-input"
 
-static NamedPipe nm_output(NETMAN_OUTPUT_PIPE);
-static NamedPipe nm_input(NETMAN_OUTPUT_PIPE);
-static NamedPipe cmd_input(NETMAN_OUTPUT_PIPE);
+static NamedPipe cmd_input(COMMAND_INPUT_PIPE);
 
 // The file where commands are added to be sent to the satellite
 const char CMD_INPUT_PIPE[] = COMMAND_INPUT_PIPE;

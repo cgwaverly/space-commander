@@ -13,6 +13,7 @@
         GInet_w_com_r = 6,
         GIcom_w_net_r = 7
     } pipe_num_t;
+#define GND_PIPES "/home/pipes/ground"
 #else
     typedef enum {
         Dnet_w_com_r = 0,
@@ -26,10 +27,15 @@ class Net2Com{
     private :
         static const int NULL_CHAR_LENGTH = 1;
         static const int NUMBER_OF_PIPES = 4;
+	static const int NUMBER_OF_PIPES_MOCK_SAT = 8;
         static const char* pipe_str[];
-         
-        NamedPipe* pipe[NUMBER_OF_PIPES];
-        
+
+#ifdef GROUND_MOCK_SAT         
+        NamedPipe* pipe[NUMBER_OF_PIPES_MOCK_SAT];
+#else
+	NamedPipe* pipe[MUMBER_OF_PIPES];
+#endif
+
         NamedPipe* dataPipe_w;
         NamedPipe* dataPipe_r;
         NamedPipe* infoPipe_w;
