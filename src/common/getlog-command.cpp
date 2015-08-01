@@ -26,6 +26,8 @@
 
 extern const char* s_cs1_subsystems[];  // defined in subsystems.cpp
 
+static char log_buf[CS1_MAX_LOG_ENTRY] = {0};
+
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 *
 * NAME : GetLogCommand
@@ -89,7 +91,10 @@ void* GetLogCommand::Execute(size_t *pSize)
     while (number_of_files_to_retreive) { 
         file_to_retreive = this->GetNextFile();
 #ifdef CS1_DEBUG
-        fprintf(stderr, "[DEBUG] %s() - file_to_retreive : %s\n", __func__, file_to_retreive);
+       memset(this->log_buffer, 0, CS1_MAX_LOG_ENTRY);
+       snprintf(this->log_buffer,CS1_MAX_LOG_ENTRY, " %s() - file_to_retreive : %s\n", __func__, file_to_retreive);
+       Shakespeare::log(Shakespeare::DEBUG, cs1_systems[CS1_COMMANDER], this->log_buffer);
+
 #endif
         if ( file_to_retreive[0] != '\0' )
         {
@@ -165,12 +170,16 @@ size_t GetLogCommand::ReadFile_FromStartToEnd(char *buffer, const char *filename
     size_t bytes = 0;
 
     if (!buffer) {
-        fprintf(stderr, "[ERROR] %s:%d - The output buffer is NULL.\n", __func__, __LINE__);
+	memset(log_buf, 0, CS1_MAX_LOG_ENTRY);
+        snprintf(log_buf, CS1_MAX_LOG_ENTRY, " %s:%d - The output buffer is NULL.\n", __func__, __LINE__);
+        Shakespeare::log(Shakespeare::ERROR, cs1_systems[CS1_COMMANDER], log_buf);
         return bytes;
     }
 
     if (!pFile) {
-        fprintf(stderr, "[ERROR] %s:%d - Cannot fopen the file.\n", __func__, __LINE__);
+	memset(log_buf, 0, CS1_MAX_LOG_ENTRY);
+        snprintf(log_buf,CS1_MAX_LOG_ENTRY, " %s:%d - Cannot fopen the file.\n", __func__, __LINE__);
+	Shakespeare::log(Shakespeare::ERROR, cs1_systems[CS1_COMMANDER], log_buf);
         return bytes;
     }
 
@@ -179,10 +188,14 @@ size_t GetLogCommand::ReadFile_FromStartToEnd(char *buffer, const char *filename
 
     if (feof(pFile)) {
         #ifdef CS1_DEBUG
-            fprintf(stderr, "%s EOF reached \n", __func__);
+	memset(log_buf, 0, CS1_MAX_LOG_ENTRY);
+        snprintf(log_buf,CS1_MAX_LOG_ENTRY, "%s EOF reached \n", __func__);
+	Shakespeare::log(Shakespeare::NOTICE, cs1_systems[CS1_COMMANDER], log_buf);
         #endif
     } else {
-        fprintf(stdout, "[ERROR], %s:%s:%d - EOF has not been reached, the file will be incomplete", __FILE__, __func__, __LINE__);
+	memset(log_buf, 0, CS1_MAX_LOG_ENTRY);
+        snprintf(log_buf,CS1_MAX_LOG_ENTRY, " %s:%s:%d - EOF has not been reached, the file will be incomplete", __FILE__, __func__, __LINE__);
+	Shakespeare::log(Shakespeare::ERROR, cs1_systems[CS1_COMMANDER], log_buf);
     }
 
     // Cleanup
@@ -213,23 +226,31 @@ char* GetLogCommand::GetNextFile(void)
     if (OPT_ISNOOPT(this->opt_byte)) 
     { 
         // 1. No Options are specified, retreive the oldest package.
-        fprintf(stderr, "[INFO] Execute GetLogCommand with OPT_NOOPT : Finding oldest tgz...\n");
+	memset(this->log_buffer, 0, CS1_MAX_LOG_ENTRY);
+        snprintf(this->log_buffer,CS1_MAX_LOG_ENTRY, " Execute GetLogCommand with OPT_NOOPT : Finding oldest tgz...\n");
+	Shakespeare::log(Shakespeare::NOTICE, cs1_systems[CS1_COMMANDER], this->log_buffer);
         buf = GetLogCommand::FindOldestFile(CS1_TGZ, NULL);     // Pass NULL to match ANY Sub
     } 
     else if (OPT_ISSUB(this->opt_byte) && !OPT_ISDATE(this->opt_byte)) 
     {
         // 2. The Subsystem is defined, retreive the oldest package that belongs to that subsystem.
-        fprintf(stderr, "[INFO] Execute GetLogCommand with OPT_SUB : Finding oldest tgz that matches SUB...\n");
+	memset(this->log_buffer, 0, CS1_MAX_LOG_ENTRY);
+        snprintf(this->log_buffer,CS1_MAX_LOG_ENTRY, " Execute GetLogCommand with OPT_SUB : Finding oldest tgz that matches SUB...\n");
+	Shakespeare::log(Shakespeare::NOTICE, cs1_systems[CS1_COMMANDER], this->log_buffer);
         buf = GetLogCommand::FindOldestFile(CS1_TGZ, s_cs1_subsystems[(size_t)this->subsystem]);
     } 
     else if (OPT_ISSUB(this->opt_byte) && OPT_ISDATE(this->opt_byte)) 
     {
         // Assuming there is only one file with this SUB and this DATE <- NOT TRUE!
-        fprintf(stderr, "[DEBUG] %s():%d OPT_SUB | OPT_DATE\n", __func__, __LINE__);
+	memset(this->log_buffer, 0, CS1_MAX_LOG_ENTRY);
+        snprintf(this->log_buffer,CS1_MAX_LOG_ENTRY, " %s():%d OPT_SUB | OPT_DATE\n", __func__, __LINE__);
+	Shakespeare::log(Shakespeare::DEBUG, cs1_systems[CS1_COMMANDER], this->log_buffer);
         char pattern[CS1_NAME_MAX];
         strcpy(pattern, s_cs1_subsystems[(size_t)this->subsystem]);
         strcat(pattern, this->date.GetString());
-        fprintf(stderr, "[DEBUG] %s():%d OPT_DATE | OPT_DATE : pattern is %s\n", __func__, __LINE__, pattern);
+	memset(this->log_buffer, 0, CS1_MAX_LOG_ENTRY);
+        snprintf(this->log_buffer,CS1_MAX_LOG_ENTRY, " %s():%d OPT_DATE | OPT_DATE : pattern is %s\n", __func__, __LINE__, pattern);
+	Shakespeare::log(Shakespeare::DEBUG, cs1_systems[CS1_COMMANDER], this->log_buffer);
 
         buf = GetLogCommand::FindOldestFile(CS1_TGZ, pattern);
     }
@@ -310,7 +331,9 @@ void GetLogCommand::MarkAsProcessed(const char *filepath)
     stat(filepath, &attr);
 
 #ifdef CS1_DEBUG
-    fprintf(stderr, "[DEBUG] %s() - inode %d\n", __func__, (unsigned int)attr.st_ino);
+    memset(this->log_buffer, 0, CS1_MAX_LOG_ENTRY);
+    snprintf(this->log_buffer,CS1_MAX_LOG_ENTRY, " %s() - inode %d\n", __func__, (unsigned int)attr.st_ino);
+    Shakespeare::log(Shakespeare::DEBUG, cs1_systems[CS1_COMMANDER], this->log_buffer);
 #endif
     this->processed_files[this->number_of_processed_files] = attr.st_ino;
     this->number_of_processed_files++;
@@ -328,7 +351,9 @@ bool GetLogCommand::isFileProcessed(unsigned long inode)
     for (size_t i = 0; i < this->number_of_processed_files; i++) {
         if (inode == this->processed_files[i]) {
 #ifdef CS1_DEBUG
-            fprintf(stderr, "[DEBUG] %s() - inode %d\n", __func__, (unsigned int)inode);
+	    memset(this->log_buffer, 0, CS1_MAX_LOG_ENTRY);
+            snprintf(this->log_buffer,CS1_MAX_LOG_ENTRY, " %s() - inode %d\n", __func__, (unsigned int)inode);
+	    Shakespeare::log(Shakespeare::DEBUG, cs1_systems[CS1_COMMANDER], this->log_buffer);
 #endif
             return true;
         }
@@ -530,8 +555,10 @@ InfoBytes* GetLogCommand::ParseResult(char *result, const char *filename)
             pFile = fopen(filename, "wb");
 
             if (!pFile) {
-                fprintf(stderr, "[ERROR] %s:%s:%d cannot create the file %s\n", 
+		memset(this->log_buffer, 0, CS1_MAX_LOG_ENTRY);
+                snprintf(this->log_buffer,CS1_MAX_LOG_ENTRY, " %s:%s:%d cannot create the file %s\n", 
                                                 __FILE__, __func__, __LINE__, filename);
+		Shakespeare::log(Shakespeare::ERROR, cs1_systems[CS1_COMMANDER], this->log_buffer);
             }
         }
 
@@ -545,9 +572,10 @@ InfoBytes* GetLogCommand::ParseResult(char *result, const char *filename)
             result++;
             bytes++;
         }
-
+	
+	memset(this->log_buffer, 0, CS1_MAX_LOG_ENTRY);
         snprintf(this->log_buffer, CS1_MAX_LOG_ENTRY, 
-                    "GetLog success with inode %u and with message(%i bytes)", info_bytes.inode, bytes);
+                    "GetLog success with inode %lu and with message(%i bytes)", info_bytes.inode, bytes); // modified type %u to  %lu since  info_bytes.inode is of type ino_t which is long unsigned int
         Shakespeare::log(Shakespeare::NOTICE, cs1_systems[CS1_COMMANDER], this->log_buffer);
 
         info_bytes.message_bytes_size = bytes;
