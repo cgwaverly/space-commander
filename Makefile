@@ -89,7 +89,7 @@ $(SPACE_COMMANDER_BIN)/%.o: src/space-commander/%.cpp include/space-commander/%.
 $(SPACE_COMMANDER_BIN): src/space-commander/space-commander-main.cpp $(COMMON_OBJECTS) $(OBJECTS)
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(DEBUGFLAGS) $(INCLUDES) $(LIBPATH) -o $@/space-commander $^ $(LIBS) $(ENV)
 
-test: ENV = -DCS1_DEBUG  $(UTEST_ENV)  -DPRESERVE
+test: ENV = -DCS1_DEBUG  $(UTEST_ENV)  -DPRESERVE -DGROUND_MOCK_SAT
 test: buildBin make_dir bin/AllTests $(SPACE_COMMANDER_BIN)
 	mkdir -p $(CS1_UTEST_DIR)
 

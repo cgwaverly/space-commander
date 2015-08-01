@@ -33,7 +33,7 @@ class Net2Com{
 #ifdef GROUND_MOCK_SAT         
         NamedPipe* pipe[NUMBER_OF_PIPES_MOCK_SAT];
 #else
-	NamedPipe* pipe[MUMBER_OF_PIPES];
+	NamedPipe* pipe[NUMBER_OF_PIPES];
 #endif
 
         NamedPipe* dataPipe_w;

@@ -31,8 +31,9 @@ int main()
 
     // TODO for mock satellite simulation, the ground and satellite commanders need to be
     // reading from a different set of named pipes    
-    // TODO this is causing segfault
+#ifdef GROUND_MOCK_SAT
      commander = new Net2Com(GDcom_w_net_r, GDnet_w_com_r, GIcom_w_net_r, GInet_w_com_r);
+#endif
 
     Shakespeare::log(Shakespeare::NOTICE, GC_LOGNAME, "Waiting for commands to send or satellite data");
      	
@@ -99,10 +100,10 @@ int read_command()
 
     if (input_bytes_read > 0) // if we have read a command from the command_input_pipe
     {
-        snprintf(gc_log_buffer,CS1_MAX_LOG_ENTRY,"Read from command input file: %s", stored_command.c_str());
+        snprintf(gc_log_buffer,CS1_MAX_LOG_ENTRY,"Read from command input file: %s", cmd_buffer);
         Shakespeare::log(Shakespeare::NOTICE,GC_LOGNAME,gc_log_buffer);
         // TODO: write to normal pipes
-        int data_bytes_written = commander->WriteToDataPipe( stored_command.c_str() );
+        int data_bytes_written = commander->WriteToDataPipe( cmd_buffer);
         // TODO implement passing size // int data_bytes_written = commander->WriteToDataPipe(result, size);
 
         if (data_bytes_written > 0) 
