@@ -34,24 +34,29 @@
 #define CMD_BUF_SIZE 25 // TODO this should be globally defined
 
 static char command_buf[CMD_BUF_SIZE] = {'\0'};
-#define SPACE_COMMANDER_BIN  "bin/space-commander/space-commander" // use local bin, not the one unser CS1_APPS
+
 #define GROUND_COMMANDER_BIN "bin/ground-commander/ground-commander" // use local bin, not the one unser CS1_APPS
 
 #define UTEST_SIZE_OF_TEST_FILES 6
 
 TEST_GROUP(GroundCommanderTestGroup)
 {
-    Net2Com* netman;
+    	Net2Com *Test_GD_Commander;
+	static const int BUFFER_SIZE = 50;
+	static const int NULL_CHAR_LENGTH = 1;
 
     void setup()
     {
         mkdir(CS1_TGZ, S_IRWXU);
         mkdir(CS1_LOGS, S_IRWXU);
+	mkdir(CS1_PIPES, S_IRWXU);
+	mkdir(GND_PIPES, S_IRWXU);
 
+	Test_GD_Commander = new Net2Com(GDnet_w_com_r, GDcom_w_net_r, GInet_w_com_r, GIcom_w_net_r);
         pid_t pid = fork();
 
         if (pid == 0) {
-            if(execl("./"SPACE_COMMANDER_BIN, SPACE_COMMANDER_BIN, NULL) == -1){
+            if(execl("./"GROUND_COMMANDER_BIN, GROUND_COMMANDER_BIN, NULL) == -1){
                 fprintf(stderr, "[ERROR] %s:%s:%d ", __FILE__, __func__, __LINE__);
                 exit(EXIT_FAILURE);
             }
@@ -59,10 +64,8 @@ TEST_GROUP(GroundCommanderTestGroup)
 
         // Make sure the commander is running
         while (system("ps aux | grep bin/ground-commander/ground-commander 1>/dev/null") != 0){
-           usleep(1000); 
+           	usleep(1000); 
         }
-
-        netman = Net2Com::create_netman();
         memset(command_buf, '\0', CMD_BUF_SIZE);
     }
     
@@ -79,13 +82,12 @@ TEST_GROUP(GroundCommanderTestGroup)
         if (system("pidof ground-commander | xargs  kill -15") != 0) {
             fprintf(stderr, "[ERROR] pidof ground-commander | xargs -15 kill");
         }
-
-        DeleteDirectoryContent(CS1_PIPES);
-
-        if (netman) {
-            delete netman;
-            netman = NULL;
+	
+	 if (Test_GD_Commander != NULL) {
+            delete Test_GD_Commander;
+            Test_GD_Commander = NULL;
         }
+        DeleteDirectoryContent(CS1_PIPES);
     }
 };
 
@@ -99,13 +101,23 @@ TEST_GROUP(GroundCommanderTestGroup)
  *-----------------------------------------------------------------------------*/
 TEST(GroundCommanderTestGroup, Read_Command_Success) 
 {
-    COMMAND_INPUT_PIPE
+    //COMMAND_INPUT_PIPE
     // - write a command buffer to the Command Input File
     // - run read_command
     // - check if data pipe was written to, and validate the contents of the 
     //   command that was written
     // - check that the command was removed from the Command Input File
     // - verfiy data_bytes_written return result
+    char buffer[BUFFER_SIZE];
+    const char* data = "SomeCOMMAND";
+    size_t BytesReadFromDataPipe;
+    sleep(2); // Delay in order to give enough time to the "ground-commander" child process to create the cmd_input pipe
+    cmd_input.WriteToPipe(data, strlen(data) + NULL_CHAR_LENGTH);
+    sleep(1); // sleep to allow enough time to the read_command in "ground-commander" to write to data pipe
+    BytesReadFromDataPipe = Test_GD_Commander->ReadFromDataPipe(buffer,BUFFER_SIZE);
+    sleep(1); // sleep to allow printout of read_command execution from "ground-commander"
+    CHECK_EQUAL(strlen(data) + NULL_CHAR_LENGTH, BytesReadFromDataPipe);
+    STRCMP_EQUAL(data, buffer);
 }
 
 TEST(GroundCommanderTestGroup, Delete_Command_Success) 
@@ -122,6 +134,12 @@ TEST(GroundCommanderTestGroup, GetResultData_Success)
     // - write place each command in the Dnet-w-com-r pipe
     // - read the result buffer
     // - run ParseResult and validate all sample data
+	size_t BytesWritten;
+	char command[BUFFER_SIZE]= {'\0'};
+	sleep(1); // delay to allow InfoPipe to be written
+	command[0] = GETTIME_CMD;
+	BytesWritten = Test_GD_Commander->WriteToInfoPipe(command);
+	sleep(1);
 }
 
 TEST(GroundCommanderTestGroup, Perform_Success) 

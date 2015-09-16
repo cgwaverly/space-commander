@@ -61,7 +61,7 @@ OBJECTS = $(SPACE_COMMANDER_BIN)/Net2Com.o $(SPACE_COMMANDER_BIN)/NamedPipe.o $(
 #
 # CppUTest files, no wildcard, add files explicitly!
 #
-UNIT_TEST = tests/unit/Net2Com-test.cpp  tests/unit/deletelog-command-test.cpp  tests/unit/getlog-command-test.cpp tests/unit/commander-test.cpp tests/unit/settime-command-test.cpp  tests/unit/gettime-command-test.cpp
+UNIT_TEST = tests/unit/Net2Com-test.cpp  tests/unit/deletelog-command-test.cpp  tests/unit/getlog-command-test.cpp tests/unit/commander-test.cpp tests/unit/settime-command-test.cpp  tests/unit/gettime-command-test.cpp tests/unit/ground-commander-test.cpp
 CS1_UTEST_DIR="cs1_utest" # as defined in SpaceDecl.h
 
 #
@@ -93,7 +93,7 @@ test: ENV = -DCS1_DEBUG  $(UTEST_ENV)  -DPRESERVE -DGROUND_MOCK_SAT
 test: buildBin make_dir bin/AllTests $(SPACE_COMMANDER_BIN)
 	mkdir -p $(CS1_UTEST_DIR)
 
-bin/AllTests: tests/unit/AllTests.cpp  $(UNIT_TEST) $(COMMON_OBJECTS) $(OBJECTS) 
+bin/AllTests: tests/unit/AllTests.cpp  $(UNIT_TEST) $(COMMON_OBJECTS) $(OBJECTS)
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(DEBUGFLAGS) $(INCLUDES) $(LIBPATH) -o $@ $^ $(LIBS) $(ENV)
 	
 #

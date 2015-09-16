@@ -43,7 +43,7 @@ static char cmd_buffer[MAX_COMMAND_SIZE] = {'\0'};
 static Net2Com* commander = 0; 
 static string stored_command;
 InfoBytes* ParseResultData(char* result_buffer);
-int perform(int bytes);
+int process_results(int bytes);
 int read_results();
 int read_command();
 int delete_command();
@@ -56,8 +56,9 @@ char gc_log_buffer[CS1_MAX_LOG_ENTRY] = {0};
 const char CMD_TEMP_FILE[] = "/home/groundCommanderTemp"; //###MAKE SURE TO HAVE WRITE PERMISSIONS###
 
 #define COMMAND_INPUT_PIPE "/home/pipes/cmd-input"
+#define MOCK_PIPE "/home/pipes/mock-pipe"
 
 static NamedPipe cmd_input(COMMAND_INPUT_PIPE);
-
 // The file where commands are added to be sent to the satellite
 const char CMD_INPUT_PIPE[] = COMMAND_INPUT_PIPE;
+

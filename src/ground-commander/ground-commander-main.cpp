@@ -8,6 +8,7 @@
 
 #include "ground-commander-main.h"
 
+
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
  * NAME : main 
@@ -36,30 +37,27 @@ int main()
 #endif
 
     Shakespeare::log(Shakespeare::NOTICE, GC_LOGNAME, "Waiting for commands to send or satellite data");
-     	
     while (true)
     {
         int result_bytes = read_results();
-	
         if (result_bytes > 0) {
             //get result buffers
             memset(gc_log_buffer,0,CS1_MAX_LOG_ENTRY);
             snprintf(gc_log_buffer,CS1_MAX_LOG_ENTRY,"Got bytes from Ground Netman: %d", result_bytes);
             Shakespeare::log(Shakespeare::NOTICE, GC_LOGNAME, gc_log_buffer );
-
-            perform(result_bytes);
+	    process_results(result_bytes);
         }
         // if no result buffers, proceed to check for commands to send
         read_command();
-        sleep(COMMANER_SLEEP_TIME);
-    }        
-    
+	sleep(COMMANER_SLEEP_TIME);
+    }
+
     if (commander) {
         delete commander;
         commander = 0;
     }
 
-    return CS1_SUCCESS;
+  return CS1_SUCCESS;
 }
 
 /**
@@ -93,22 +91,23 @@ int read_results()
 int read_command()
 {
     memset(cmd_buffer,0,MAX_COMMAND_SIZE);
-    //
+
     // the command input pipe contains command buffers that are ready to be passed
     // through the pipes to the satellite commander
     int input_bytes_read = cmd_input.ReadFromPipe(cmd_buffer, MAX_COMMAND_SIZE);
 
     if (input_bytes_read > 0) // if we have read a command from the command_input_pipe
     {
-        snprintf(gc_log_buffer,CS1_MAX_LOG_ENTRY,"Read from command input file: %s", cmd_buffer);
+#ifdef CS1_DEBUG      
+  	snprintf(gc_log_buffer,CS1_MAX_LOG_ENTRY,"Read from command input file: %s", cmd_buffer);
         Shakespeare::log(Shakespeare::NOTICE,GC_LOGNAME,gc_log_buffer);
+#endif
         // TODO: write to normal pipes
         int data_bytes_written = commander->WriteToDataPipe( cmd_buffer);
         // TODO implement passing size // int data_bytes_written = commander->WriteToDataPipe(result, size);
-
         if (data_bytes_written > 0) 
         {
-            return data_bytes_written;
+	    return data_bytes_written;
             delete_command(); // delete_command is obsolete now, IIRC reading from pipe removes the line automatically
             // TODO perhaps rewrite the data back to the pipe if it failed to be passed on correctly
         }
@@ -162,7 +161,7 @@ int delete_command()
  * The perform function will parse incoming bytes from the Dnet_w_com_r pipe 
  * and attempt to detect result buffers. 
  **/
-int perform(int bytes)
+int process_results(int bytes)
 {
     // TODO there is supposed to be a master log of outstanding command requests and
     // the result of the command execution. Except for getlog, there is a one-to-one
@@ -172,27 +171,7 @@ int perform(int bytes)
 #ifdef GROUND_MOCK_SAT // using the single pipe method, built from Olivier's hack of gnd_main (netman)
 	if (bytes) 
 	{ // success
-    #ifdef CS1_DEBUG
-        InfoBytes* result_object;
-        ICommand* command = CommandFactory::CreateCommand(info_buffer);
-		switch ( (uint8_t)info_buffer[0] )
-		{
-			case GETLOG_CMD:
-				Shakespeare::log(Shakespeare::NOTICE, GC_LOGNAME, "Decoding GETLOG_CMD...");
-                
-				// TODO: log to proper system (get log), e.g. log to database
-                
-                result_object = ((GetLogCommand* )command)->ParseResult(info_buffer,"/home/logs/cheese");
-
-                break;
-			case GETTIME_CMD:
-				Shakespeare::log(Shakespeare::NOTICE, GC_LOGNAME, "Decoding GETTIME_CMD...");
-                break;
-			default:
-				Shakespeare::log(Shakespeare::NOTICE, GC_LOGNAME, "Not sure what we got...");
-		}
-    #endif
-
+   
         //InfoBytes * parsed_result = ParseResultData(info_buffer);
 
         // TODO
@@ -213,11 +192,11 @@ int perform(int bytes)
         read = (unsigned char)info_buffer[i];
         switch (read) 
         {
-            case 252: 
+            case NET2COM_SESSION_ESTABLISHED: 
                 break;
-            case 253:
-            case 254:
-            case 255: 
+            case NET2COM_SESSION_END_CMD_CONFIRMATION:
+            case NET2COM_SESSION_END_TIMEOUT:
+            case NET2COM_SESSION_END_BY_OTHER_HOST: 
             {
                 int data_bytes = 0;
                 while (data_bytes == 0) {
@@ -249,9 +228,7 @@ int perform(int bytes)
                         free(buffer);
                         buffer = NULL;
                     }
-                    
                     sleep(COMMANER_SLEEP_TIME); //We have to sleep because we got data from the info pipe. Wait for the data pipe to be ready
-                    
                 }
 
                 read_total = 0;
@@ -266,7 +243,6 @@ int perform(int bytes)
         }
     }
 #endif
-    
     return CS1_SUCCESS; 
 }
 

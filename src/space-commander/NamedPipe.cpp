@@ -163,7 +163,7 @@ void NamedPipe::closePipe()
 * RETURN : Number of bytes read.
 *
 *-----------------------------------------------------------------------------*/
-int NamedPipe::ReadFromPipe(char* buffer, int size) 
+int NamedPipe::ReadFromPipe(char* buffer, int size ) 
 {
     int bytes_read = 0;
 
@@ -174,7 +174,7 @@ int NamedPipe::ReadFromPipe(char* buffer, int size)
     struct pollfd fds;
     fds.fd = fifo;
     fds.events = POLLIN;
-	
+    
     // poll 5 ms to see if there's new data to be read
     if(poll(&fds, 1, 5)) {
        bytes_read = read(fifo, buffer, size);
@@ -218,7 +218,7 @@ int NamedPipe::WriteToPipe(const void* buffer, int size)
         if(errno != EAGAIN) {
              memset(np_log_buffer, 0, CS1_MAX_LOG_ENTRY);
              snprintf(np_log_buffer,CS1_MAX_LOG_ENTRY, 
-                "Couldn't write(fifo) : %s\n", strerror(errno)
+                "Pipe (%s) was succesfully open in 'w' mode, but couldn't write because of error : %s\n",fifo_path, strerror(errno)
              );
              Shakespeare::log(Shakespeare::ERROR, NP_LOGNAME, np_log_buffer);
         }

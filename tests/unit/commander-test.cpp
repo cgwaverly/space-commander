@@ -46,6 +46,7 @@ TEST_GROUP(CommanderTestGroup)
     {
         mkdir(CS1_TGZ, S_IRWXU);
         mkdir(CS1_LOGS, S_IRWXU);
+	mkdir(GND_PIPES, S_IRWXU);
 
         pid_t pid = fork();
 

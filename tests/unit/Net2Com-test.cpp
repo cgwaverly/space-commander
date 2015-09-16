@@ -34,6 +34,7 @@ TEST_GROUP(Net2ComTestGroup)
     void setup()
     {
         mkdir(CS1_PIPES, S_IRWXU);
+	mkdir(GND_PIPES, S_IRWXU);
         netman = new Net2Com(Dnet_w_com_r, Dcom_w_net_r,  Inet_w_com_r, Icom_w_net_r);
         commander = new Net2Com(Dcom_w_net_r, Dnet_w_com_r, Icom_w_net_r, Inet_w_com_r);
     }
