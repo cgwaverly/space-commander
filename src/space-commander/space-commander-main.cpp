@@ -31,7 +31,7 @@ const char* LOGNAME = cs1_systems[CS1_COMMANDER];
 
 // Declarations
 static void out_of_memory_handler();
-static int perform(int bytes);
+static int execute_commands(int bytes);
 
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
@@ -65,7 +65,7 @@ int main()
         int bytes = commander->ReadFromInfoPipe(info_buffer, 255);
 
         if (bytes > 0) {
-            perform(bytes);
+            execute_commands(bytes);
         }
 
         sleep(COMMANER_SLEEP_TIME);
@@ -81,12 +81,12 @@ int main()
 
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
- * NAME : perform 
+ * NAME : execute_commands
  *
  * DESCRIPTION : reads from the pipes and execute the command.
  *
  *-----------------------------------------------------------------------------*/
-int perform(int bytes)
+int execute_commands(int bytes)
 {
 #ifdef CS1_DEBUG
     char debug_buffer[255] = {0};
